@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dsmr2mqtt
+  labels:
+    app: dsmr2mqtt
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dsmr2mqtt
+  template:
+    metadata:
+      name: dsmr2mqtt
+      labels:
+        app: dsmr2mqtt
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: node-1
+      containers:
+        - name: dsmr2mqtt
+          image: thuisapp/dsmr2mqtt:latest
+          imagePullPolicy: Always
+          command:
+            - /usr/local/bin/dsmr2mqtt
+            - -m
+            - mosquitto
+          securityContext:
+            privileged: true
+          ports:
+            - name: http
+              containerPort: 8080
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "50Mi"
+            limits:
+              cpu: "250m"
+              memory: "200Mi"
+          volumeMounts:
+            - mountPath: /dev/ttyUSB0
+              name: ttyusb0
+      volumes:
+        - name: ttyusb0
+          hostPath:
+            path: /dev/ttyUSB0
+      imagePullSecrets:
+        - name: regcred
+      restartPolicy: Always
